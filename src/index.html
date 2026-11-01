@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Racket Studio</title>
+<style>
+  :root { font-family: -apple-system, "SF Pro Text", "Helvetica Neue", Inter, system-ui, sans-serif; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; overflow: hidden; }
+  body { background: linear-gradient(135deg, #221824 0%, #33203a 55%, #4a2850 100%); color: #f3eaf0; font-size: 12.5px; user-select: none; }
+  #app { height: 100%; display: flex; flex-direction: column; }
+  #title { height: 38px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 13px;
+    background: rgba(255,255,255,.06); border-bottom: 1px solid rgba(255,255,255,.06); -webkit-app-region: drag; }
+  #body { flex: 1; display: flex; min-height: 0; }
+
+  #act { width: 48px; flex-shrink: 0; display: flex; flex-direction: column; align-items: center; padding-top: 6px; gap: 2px;
+    background: rgba(0,0,0,.28); border-right: 1px solid rgba(255,255,255,.06); }
+  #act .i { width: 48px; height: 46px; display: flex; align-items: center; justify-content: center; font-size: 19px; color: #8f6f80; border-left: 2px solid transparent; cursor: default; }
+  #act .i:hover { color: #f6dbe7; }
+  #act .i.on { color: #f6dbe7; border-left-color: #e07ba6; }
+  #act .grow { flex: 1; }
+
+  #side { width: 250px; flex-shrink: 0; background: rgba(58,42,58,.55); border-right: 1px solid rgba(255,255,255,.07); display: flex; flex-direction: column; min-height: 0; }
+  #side.hide { display: none; }
+  #side h4 { margin: 0; padding: 10px 14px; font-size: 10.5px; text-transform: uppercase; letter-spacing: .08em; color: #c197a9; display: flex; justify-content: space-between; }
+  #tree { overflow: auto; flex: 1; padding-bottom: 12px; }
+  .ti { padding: 3px 8px; white-space: nowrap; color: #e9d9e3; cursor: default; display: flex; gap: 6px; }
+  .ti:hover { background: rgba(255,255,255,.07); }
+  .ti.sel { background: rgba(224,123,166,.22); }
+  .ti .ic { width: 12px; color: #b08a9e; text-align: center; }
+  .muted { color: #8f6f80; padding: 4px 14px; line-height: 1.5; }
+  .btn { margin: 4px 14px; padding: 6px 10px; border-radius: 6px; background: #e07ba6; color: #2e1622; font-weight: 600; text-align: center; cursor: default; }
+
+  #center { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+  #tabrow { display: flex; align-items: flex-end; background: rgba(0,0,0,.2); border-bottom: 1px solid rgba(255,255,255,.07); padding-top: 6px; }
+  #tabs { flex: 1; display: flex; gap: 2px; overflow-x: auto; padding-left: 6px; }
+  .tab { display: flex; align-items: center; gap: 8px; padding: 7px 12px; background: rgba(255,255,255,.04); color: #cbb6c2; border-radius: 7px 7px 0 0; white-space: nowrap; cursor: default; border-top: 2px solid transparent; }
+  .tab.sel { background: #1c1420; color: #f6dbe7; border-top-color: #e07ba6; }
+  .tab .x { color: #8f6f80; width: 14px; text-align: center; border-radius: 3px; }
+  .tab .x:hover { background: rgba(255,255,255,.12); color: #f6dbe7; }
+  .tab.dirty .x::before { content: "●"; color: #e07ba6; }
+  .tab.dirty .x span { display: none; }
+  .tab.dirty:hover .x::before { content: ""; }
+  .tab.dirty:hover .x span { display: inline; }
+  #tools { display: flex; gap: 6px; align-items: center; padding: 0 10px 5px; }
+  .tb { font: inherit; padding: 4px 10px; border-radius: 6px; border: 1px solid transparent; background: rgba(255,255,255,.07); color: #e9d9e3; cursor: default; white-space: nowrap; }
+  .tb:hover { background: rgba(255,255,255,.14); }
+  .tb.run { background: #e07ba6; color: #2e1622; font-weight: 600; }
+  .tb.stop { color: #ff9aa8; }
+  select.tb { outline: none; max-width: 250px; }
+  select.tb option { background: #2e1622; }
+
+  #ed { flex: 1; min-height: 0; background: #1c1420; }
+  #panel { height: 240px; flex-shrink: 0; display: flex; flex-direction: column; background: #1c1420; border-top: 1px solid rgba(224,123,166,.35); }
+  #panel.hide { display: none; }
+  #ptabs { display: flex; gap: 18px; padding: 6px 14px 0; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: #8f6f80; border-bottom: 1px solid rgba(255,255,255,.06); }
+  #ptabs div { padding-bottom: 6px; border-bottom: 1px solid transparent; cursor: default; }
+  #ptabs div.on { color: #f6dbe7; border-bottom-color: #e07ba6; }
+  #ptabs .sp { flex: 1; border: 0; }
+  .pane { flex: 1; overflow: auto; margin: 0; padding: 8px 14px; font: 12.5px/1.5 "SF Mono", Menlo, monospace; white-space: pre-wrap; user-select: text; display: none; }
+  .pane.on { display: block; }
+  .pane .err { color: #ff9aa8; } .pane .dim { color: #8f6f80; } .pane .you { color: #f0b9d2; }
+  .prob { cursor: default; padding: 3px 0; } .prob:hover { background: rgba(255,255,255,.06); }
+  #replwrap { flex: 1; display: none; flex-direction: column; min-height: 0; }
+  #replwrap.on { display: flex; }
+  #replwrap .pane { display: block; }
+  #replin { display: flex; gap: 8px; align-items: center; padding: 6px 14px; border-top: 1px solid rgba(255,255,255,.06); font-family: "SF Mono", Menlo, monospace; color: #e07ba6; }
+  #replin input { flex: 1; background: transparent; border: none; outline: none; color: #f3eaf0; font: inherit; user-select: text; }
+
+  #status { height: 24px; flex-shrink: 0; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; font-size: 11.5px; color: #fbe9f2; background: #8e3f66; }
+  #status span { margin-right: 16px; } #status .r span { margin: 0 0 0 16px; }
+
+  #modal { position: fixed; inset: 0; background: rgba(0,0,0,.5); display: none; align-items: center; justify-content: center; z-index: 50; }
+  #modal.on { display: flex; }
+  #box { width: 520px; max-width: 92vw; background: #2e1b33; border: 1px solid rgba(224,123,166,.4); border-radius: 12px; padding: 18px 20px; box-shadow: 0 24px 60px rgba(0,0,0,.6); }
+  #box h3 { margin: 0 0 12px; font-size: 15px; }
+  #box label { display: block; margin: 10px 0 4px; color: #c197a9; font-size: 11px; }
+  #box input { width: 100%; background: rgba(0,0,0,.3); border: 1px solid rgba(255,255,255,.12); color: #f3eaf0; padding: 7px 9px; border-radius: 6px; font: inherit; outline: none; user-select: text; }
+  #box .hint { color: #8f6f80; font-size: 11px; margin-top: 3px; line-height: 1.4; }
+  #box .row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 16px; }
+  #stepwrap { flex: 1; display: none; flex-direction: column; min-height: 0; }
+  #stepwrap.on { display: flex; }
+  #stepbar { display: flex; gap: 6px; align-items: center; padding: 6px 14px; border-bottom: 1px solid rgba(255,255,255,.06); }
+  #stepbar .dim { color: #8f6f80; margin-left: 8px; }
+  #stepbody { flex: 1; overflow: auto; padding: 8px 14px; font: 13px/1.6 "SF Mono", Menlo, monospace; user-select: text; }
+  #stepbody pre { margin: 2px 0 10px; white-space: pre-wrap; }
+  #stepbody .lbl { color: #8f6f80; font: 11px -apple-system, sans-serif; text-transform: uppercase; letter-spacing: .06em; }
+  .hi { background: rgba(224,123,166,.4); border-radius: 3px; padding: 0 1px; }
+  .res { background: rgba(143,227,168,.3); border-radius: 3px; padding: 0 1px; }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="title">Racket Studio</div>
+  <div id="body">
+    <div id="act">
+      <div class="i on" id="aExp" title="Explorer">▤</div>
+      <div class="i" id="aRun" title="Run (⌘R)">▶</div>
+      <div class="grow"></div>
+      <div class="i" id="aSet" title="Settings (⌘,)">⚙</div>
+    </div>
+    <aside id="side">
+      <h4><span id="folderName">Explorer</span></h4>
+      <div id="tree"></div>
+    </aside>
+    <div id="center">
+      <div id="tabrow">
+        <div id="tabs"></div>
+        <div id="tools">
+          <select class="tb" id="lang" title="Language level"></select>
+          <button class="tb" id="bStep" title="Stepper (⇧⌘E)">👣 Stepper</button>
+          <button class="tb" id="bCheck" title="Check Syntax (⇧⌘K)">✓ Check Syntax</button>
+          <button class="tb run" id="bRun" title="Run (⌘R)">▶ Run</button>
+          <button class="tb stop" id="bStop" title="Stop (⌘.)">■ Stop</button>
+        </div>
+      </div>
+      <div id="ed"></div>
+      <div id="panel">
+        <div id="ptabs"><div data-p="out" class="on">Output</div><div data-p="repl">Interactions</div><div data-p="prob">Problems</div><div data-p="step">Stepper</div><div class="sp"></div><div id="pClear">Clear</div></div>
+        <pre class="pane on" id="out"></pre>
+        <div id="replwrap"><pre class="pane" id="repl"></pre><div id="replin">&gt;<input id="rin" placeholder="Type an expression and press Enter" spellcheck="false" /></div></div>
+        <div class="pane" id="prob"></div>
+        <div id="stepwrap"><div id="stepbar"><button class="tb" id="sFirst">⏮</button><button class="tb" id="sPrev">◀ Back</button><button class="tb run" id="sNext">Step ▶</button><button class="tb" id="sLast">⏭</button><span class="dim" id="sInfo"></span></div><div id="stepbody"></div></div>
+      </div>
+    </div>
+  </div>
+  <div id="status"><div><span id="sRk">Racket: …</span><span id="sTests"></span></div><div class="r"><span id="sPos">Ln 1, Col 1</span><span id="sLang"></span><span>UTF-8</span></div></div>
+</div>
+
+<div id="modal"><div id="box">
+  <h3>Settings</h3>
+  <label>Racket location (optional)</label>
+  <input id="setRk" placeholder="auto-detected, e.g. /Applications/Racket v9.3" />
+  <label>Teachpacks / extra modules (required into every file without its own #lang)</label>
+  <input id="setTp" placeholder="2htdp/image 2htdp/universe" />
+  <div class="hint">Space-separated module paths, e.g. 2htdp/image. The names of the teachpacks you use in DrRacket are listed under Language → Add Teachpack.</div>
+  <label>Custom language module (added to the language list)</label>
+  <input id="setCu" placeholder="e.g. htdp/isl+ or deinprogramm/sdp/beginner" />
+  <label style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="setRep" style="width:auto" />Custom test report (tested / expected / returned / #t #f)</label>
+  <label>Font size</label>
+  <input id="setFs" type="number" min="9" max="32" />
+  <div class="row"><button class="tb" id="setCancel">Cancel</button><button class="tb run" id="setOk">Save</button></div>
+</div></div>
+
+<script src="../node_modules/monaco-editor/min/vs/loader.js"></script>
+<script src="stepper.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

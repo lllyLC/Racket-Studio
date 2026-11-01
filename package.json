@@ -1,0 +1,38 @@
+{
+  "name": "racket-studio",
+  "productName": "Racket Studio",
+  "version": "1.0.0",
+  "description": "VS-style IDE for Racket, Scheme and the teaching languages (runs your installed Racket)",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --mac --arm64"
+  },
+  "dependencies": {
+    "monaco-editor": "0.52.2"
+  },
+  "devDependencies": {
+    "electron": "^38.0.0",
+    "electron-builder": "^26.0.0"
+  },
+  "build": {
+    "appId": "local.racketstudio",
+    "mac": {
+      "target": "dir",
+      "identity": null,
+      "category": "public.app-category.developer-tools",
+      "extendInfo": {
+        "CFBundleDocumentTypes": [
+          {
+            "CFBundleTypeName": "Racket source",
+            "CFBundleTypeRole": "Editor",
+            "CFBundleTypeExtensions": ["rkt", "scm", "ss", "rktl", "rktd"]
+          }
+        ]
+      }
+    },
+    "files": [
+      "main.js", "preload.js", "runner.rkt", "src/**", "node_modules/monaco-editor/min/**"
+    ]
+  }
+}
