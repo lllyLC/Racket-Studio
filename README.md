@@ -1,5 +1,4 @@
 # Racket Studio 
-; ---------------------------------------------------------------------------------------------------------------
 
 Improved version of Dr Racket for Mac OS, will be updated with time with bug fixes. 
 
