@@ -1,6 +1,7 @@
 # Racket Studio 
 
 Improved version of Dr Racket for Mac OS, will be updated with time with bug fixes. 
+
 ; ---------------------------------------------------------------------------------------------------------------
 
 Run these commands in terminal to get it working.
