@@ -89,12 +89,8 @@ function setupMonaco() {
 
 /* =============== tabs =============== */
 const SAMPLE = `;; Neues Programm
-(: square-circumference (real -> real))
-(check-expect (square-circumference 1) 4)
-(check-expect (square-circumference 4) 16)
-(define square-circumference
-  (lambda (a)
-    (* 4 a)))
+;; Bearbeitet von: 
+;; ------------------------------------------------------------------------------------------------------------------------------------
 `;
 function newTab(path, name, text) {
   const ex = path && tabs.find((t) => t.path === path);
@@ -342,7 +338,7 @@ api.on('menu', (c) => ({
   new: newFile, open: openFiles, openDir: openFolder, save: () => save(), saveAs: () => save(cur, true),
   close: () => cur && closeTab(cur), run, stop: () => stop(), check, step: stepProgram, drracket: openInDrRacket, settings: openSettings,
   side: () => $('#side').classList.toggle('hide'), panel: () => $('#panel').classList.toggle('hide'),
-}[c] || (() => {}))());
+}[c] || (() => { }))());
 api.on('open-path', openPath);
 
 async function boot() {
